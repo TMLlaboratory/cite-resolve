@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "skills" / "cite-resolve" / "scripts"))
-from resolve import TRUNC, clean_title, from_crossref, overlap, surname_ok, title_match  # noqa: E402
+from resolve import PII_FMT_RE, TRUNC, clean_title, from_crossref, overlap, surname_ok, title_match  # noqa: E402
 
 
 def test_clean_title():
@@ -35,6 +35,11 @@ def test_filters():
 def test_crossref_unescape():
     rec = from_crossref({"title": ["A &amp; B"], "container-title": ["Anesthesia &amp; Analgesia"], "DOI": "10.1/x"})
     assert rec["title"] == "A & B" and rec["venue"] == "Anesthesia & Analgesia"
+
+
+def test_formatted_pii():
+    m = PII_FMT_RE.search("https://www.jclinepi.com/article/S0895-4356(21)00240-7/fulltext")
+    assert m and m.group(1) == "S0895-4356(21)00240-7"
 
 
 if __name__ == "__main__":

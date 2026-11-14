@@ -217,6 +217,8 @@ def bibtex_for(doi):
 ARXIV_RE = re.compile(r"(?:arxiv\.org/(?:abs|pdf|html)/|arxiv:\s*)(\d{4}\.\d{4,5}(?:v\d+)?)", re.I)
 ACL_RE = re.compile(r"aclanthology\.org/([A-Za-z0-9.\-]+?)(?:\.pdf|\.bib|/)?$")
 PII_RE = re.compile(r"/pii/([SB]?[0-9X]{15,17})", re.I)
+# journal sites (jclinepi.com, thelancet.com, cell.com ...) show the PII formatted: /article/S0895-4356(21)00240-7/
+PII_FMT_RE = re.compile(r"/article/([SB]\d{4}-?\d{3}[\dX]\(\d{2}\)\d{5}-[\dX])", re.I)
 DOI_RE = re.compile(r"\b(10\.\d{4,9}/[^\s\"'<>?#]+)", re.I)
 
 
@@ -243,8 +245,8 @@ def resolve(ref, mailto, use_s2):
         rec, src = acl_work(m.group(1)), "aclanthology"
         if rec and rec.get("doi"):
             rec = {**(crossref_work(rec["doi"], mailto) or rec), "url": rec["url"]}
-    if not rec and (m := PII_RE.search(url)):
-        rec, src = crossref_pii(m.group(1), mailto), "crossref"
+    if not rec and (m := PII_RE.search(url) or PII_FMT_RE.search(url)):
+        rec, src = crossref_pii(re.sub(r"[-()]", "", m.group(1)), mailto), "crossref"
     if rec:
         out.update(status="verified", source=src, record=rec)
         if title and not title_match(title, rec["title"]) and overlap(title, rec["title"]) < 0.5:
