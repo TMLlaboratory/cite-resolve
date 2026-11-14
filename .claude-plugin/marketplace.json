@@ -1,0 +1,14 @@
+{
+  "name": "cite-resolve",
+  "description": "cite-resolve: reference verification against bibliographic registries.",
+  "owner": {
+    "name": "TML Laboratory, Nagaoka University of Technology"
+  },
+  "plugins": [
+    {
+      "name": "cite-resolve",
+      "source": "./",
+      "description": "Verify references against bibliographic registries instead of writing them from memory."
+    }
+  ]
+}

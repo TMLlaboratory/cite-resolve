@@ -1,0 +1,10 @@
+{
+  "name": "cite-resolve",
+  "version": "0.1.0",
+  "description": "Verify references against bibliographic registries (Crossref, DataCite, arXiv, ACL Anthology, Semantic Scholar) instead of writing DOIs, venues and author lists from memory.",
+  "author": { "name": "TML Laboratory, Nagaoka University of Technology" },
+  "homepage": "https://github.com/TMLlaboratory/cite-resolve",
+  "repository": "https://github.com/TMLlaboratory/cite-resolve",
+  "license": "MIT",
+  "keywords": ["citation", "bibliography", "doi", "bibtex", "crossref", "arxiv"]
+}
