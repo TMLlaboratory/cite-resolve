@@ -2,37 +2,40 @@
 
 [日本語](README.ja.md)
 
-An agent skill that makes references come from bibliographic registries instead of from the
-model's memory.
+Ask an AI to write a reference list and some of the DOIs, volume numbers and page ranges will be
+wrong in ways that look right. Search tools (Exa, Claude's web search, and others) return little
+more than a title and a URL, so the model fills in the rest from memory.
 
-Search tools (Exa, Claude's web search, and others) return a title and a URL. When an LLM turns
-that into a reference, it fills in the DOI, venue, volume, pages and author list from memory, and
-the errors look plausible. `cite-resolve` moves those fields to a lookup:
+cite-resolve is a skill that looks those details up in bibliographic registries such as Crossref.
+The model doesn't write bibliographic fields itself; it uses what the lookup returns.
 
-| status | meaning |
+Each reference comes back with one of three statuses:
+
+| status | Meaning and what to do |
 |---|---|
-| `verified` | One registry record matches (same title, or the given DOI / arXiv ID). Use it as is |
-| `ambiguous` | Several works share the title, a subtitle differs, or the DOI points to a different title. Ask, don't pick |
-| `not_found` | No registry record. Cite as unverified (title + URL); don't fill in from memory |
+| `verified` | Matches a registry record (same title, or found by DOI or arXiv ID). Use it as is |
+| `ambiguous` | Several papers share the title, only a subtitle differs, or the DOI and the title point to different papers. Don't pick one; ask the user |
+| `not_found` | Not in any registry. Give the title and URL, mark it unverified, and don't fill in the rest from memory |
 
-Sources: Crossref, DataCite, the arXiv API, ACL Anthology, ScienceDirect PII (via Crossref), and
-optionally Semantic Scholar (for CS conference papers without DOIs). BibTeX comes from doi.org.
+It queries Crossref, DataCite, the arXiv API, ACL Anthology and ScienceDirect (looking up the
+PII in Crossref). Semantic Scholar is available as a fallback for CS conference papers that have
+no DOI. BibTeX is fetched from doi.org.
 
-Python 3.8+ standard library only. No API key.
+It runs on the Python 3.8+ standard library and needs no API key.
 
-## Install
+## Installation
 
-Claude Code:
+In Claude Code:
 
 ```text
 /plugin marketplace add TMLlaboratory/cite-resolve
 /plugin install cite-resolve@cite-resolve
 ```
 
-Other agents that read `SKILL.md` (Codex, etc.): copy `skills/cite-resolve/` into the agent's
+For Codex and other agents that read `SKILL.md`, copy `skills/cite-resolve/` into the agent's
 skills folder.
 
-Or use the script directly:
+You can also run the script directly:
 
 ```bash
 python3 skills/cite-resolve/scripts/resolve.py --url https://arxiv.org/abs/1706.03762
@@ -40,31 +43,33 @@ python3 skills/cite-resolve/scripts/resolve.py --title "Attention Is All You Nee
 python3 skills/cite-resolve/scripts/resolve.py refs.json --s2 --bibtex > resolved.json
 ```
 
-`refs.json` is a list of `{title?, url?, doi?, arxiv?, authors?, year?}`. Give the year and first
-author when you have them: they are what separate different papers with the same title.
+`refs.json` is a list of `{title?, url?, doi?, arxiv?, authors?, year?}`. Include the year and
+first author when you know them; they are how papers with the same title are told apart.
 
-Optional environment variables: `CROSSREF_MAILTO` (your address, for Crossref's polite pool),
-`S2_API_KEY` (higher Semantic Scholar rate limit).
+Both environment variables are optional. Set `CROSSREF_MAILTO` to your email address to use
+Crossref's polite pool, and `S2_API_KEY` for a higher Semantic Scholar rate limit.
 
-## How well it works
+## How accurate it is
 
-On 40 scholarly results taken from real Exa searches (titles as the search engine returned them,
-with "[PDF]" prefixes, "..." truncation, "N/A" and LaTeX left in), 38 were verified. The other two
-were OpenReview pages: OpenReview's API sits behind a bot check, so they are only found when
-Semantic Scholar has them.
+We took 40 paper pages from real Exa search results and passed their titles in unedited, with
+"[PDF]" prefixes, "..." truncation, "N/A" and LaTeX commands still in them. 38 were resolved.
+The other two were OpenReview papers. OpenReview's API is behind a bot check, so cite-resolve
+doesn't query it directly; those papers are found only if Semantic Scholar has them.
 
-## Limits
+## Limitations
 
-- Coverage follows the registries. Many domestic conference proceedings have no DOI.
-- Matching is by title. A mistyped title gives `not_found`; fix it from the source page.
+- Only works that a registry holds can be resolved. Many domestic conference proceedings have
+  no DOI.
+- Matching is by title. A wrong title gives `not_found`, so check the title on the original page
+  and run it again.
 - Books, theses and web pages are out of scope.
 
 ## Tests
 
 ```bash
-python3 tests/test_offline.py   # no network
+python3 tests/test_offline.py   # no network needed
 ```
 
 ## License
 
-MIT. Made at the TML Laboratory, Nagaoka University of Technology.
+MIT. Developed at the TML Laboratory, Nagaoka University of Technology.
