@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "skills" / "cite-resolve" / "scripts"))
-from resolve import TRUNC, clean_title, overlap, surname_ok, title_match  # noqa: E402
+from resolve import TRUNC, clean_title, from_crossref, overlap, surname_ok, title_match  # noqa: E402
 
 
 def test_clean_title():
@@ -30,6 +30,11 @@ def test_filters():
     rec = {"authors": ["Yann LeCun", "Yoshua Bengio"], "year": 2015}
     assert surname_ok("LeCun, Y.", rec) and surname_ok(["Yann LeCun"], rec) and not surname_ok(["Hinton"], rec)
     assert overlap("Attention is all you need", "Attention Is All You Need") == 1.0
+
+
+def test_crossref_unescape():
+    rec = from_crossref({"title": ["A &amp; B"], "container-title": ["Anesthesia &amp; Analgesia"], "DOI": "10.1/x"})
+    assert rec["title"] == "A & B" and rec["venue"] == "Anesthesia & Analgesia"
 
 
 if __name__ == "__main__":

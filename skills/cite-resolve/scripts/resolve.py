@@ -130,7 +130,7 @@ def from_crossref(m):
     authors = [" ".join(x for x in (a.get("given"), a.get("family")) if x) or a.get("name", "")
                for a in m.get("author", [])]
     return {"title": html.unescape(re.sub(r"<[^>]+>", "", (m.get("title") or [""])[0])), "authors": authors, "year": year,
-            "venue": (m.get("container-title") or [""])[0] or m.get("publisher", ""),
+            "venue": html.unescape((m.get("container-title") or [""])[0] or m.get("publisher", "")),
             "volume": m.get("volume"), "issue": m.get("issue"), "pages": m.get("page"),
             "type": m.get("type"), "doi": m.get("DOI"), "url": m.get("URL")}
 
